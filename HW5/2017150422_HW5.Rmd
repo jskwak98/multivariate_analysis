@@ -1,0 +1,177 @@
+---
+title: "STAT 401 Assignment 5"
+author: "2017150422 곽진성"
+date: "2023-06-06"
+output:
+  pdf_document:
+    latex_engine: xelatex
+  word_document: default
+mainfont: NanumGothic
+---
+
+```{r, results='hide', warning=FALSE}
+```
+
+# Q1
+## (a)
+
+```{r}
+X_1 <- c(3, 5, 4, 4, 2)
+X_2 <- c(2, 5, 7, 4, 4)
+q1_data <- data.frame(X_1, X_2)
+rownames(q1_data) <- c('A', 'B', 'C', 'D', 'E')
+D <- (dist(q1_data, method = "euclidean"))^2
+D
+```
+
+## (b)
+```{r, fig.width=5, fig.height=5}
+# Single Linkage
+plot(hclust(D, method="single"),labels=rownames(q1_data), xlab="Subjects",
+     ylab="sq_Euc_Dist", main="Single linkage dendrogram")
+```
+
+## (c)
+```{r, fig.width=5, fig.height=5}
+# complete Linkage
+plot(hclust(D, method="complete"),labels=rownames(q1_data), xlab="Subjects",
+     ylab="sq_Euc_Dist", main="Complete linkage dendrogram")
+```
+
+## (d)
+```{r, fig.width=5, fig.height=5}
+plot(hclust(D, method="average"),labels=rownames(q1_data), xlab="Subjects",
+     ylab="sq_Euc_Dist", main="Group Avg linkage dendrogram")
+```
+
+## (e)
+```{r, fig.width=4.5, fig.height=5}
+plot(q1_data$X_1, q1_data$X_2, xlim=c(0,8), ylim=c(0,8), pch=19, xlab="X_1", ylab="X_2")
+
+text(q1_data$X_1, q1_data$X_2, labels=rownames(q1_data), pos=3)
+```
+
+I would recommend the result of (c) and (d) based on the scatter plot. It seems that clustering [[A, e], [B, D], [C]] looks more plausible than clustering [B, D, E] in early stage.
+
+# Q2
+## (a)
+```{r, fig.width=5, fig.height=5}
+q2_cor <- matrix(c(1.00, 0.63, 0.51, 0.12, 0.16,
+                   0.63, 1.00, 0.57, 0.32, 0.21,
+                   0.51, 0.57, 1.00, 0.18, 0.15,
+                   0.12, 0.32, 0.18, 1.00, 0.68,
+                   0.16, 0.21, 0.15, 0.68, 1.00), byrow = T, nrow = 5)
+names <- c("JP Morgan", "Citibank", "Wells Fargo", "Shell", "Exxon Mobil")
+rownames(q2_cor) <- names
+colnames(q2_cor) <- names
+q2_data <- as.dist(1-q2_cor)
+
+plot(hclust(q2_data, method="single"), xlab="Stocks", ylab="Distance", main="Single linkage dendrogram")
+```
+
+
+## (b)
+```{r, fig.width=5, fig.height=5}
+plot(hclust(q2_data, method="complete"), xlab="Stocks", ylab="Distance", main="Complete linkage dendrogram")
+```
+
+
+## (c)
+```{r, fig.width=5, fig.height=5}
+plot(hclust(q2_data, method="average"), xlab="Stocks", ylab="Distance", main="Group avg linkage dendrogram")
+```
+
+## (d)
+All three methods have the same result. And it seems very natural if we make two clusters, [Shell, Exxon Mobil] and [Wells Fargo, JP Morgan, Citibank]. The first cluster is related to the oil industry while the second cluster is related to the finance.
+
+# Q3
+## (a)
+```{r}
+X_1 <- c(1, 3, 1, 4)
+X_2 <- c(-1, 1, 3, 5)
+q3_data <- data.frame(X_1, X_2)
+rownames(q3_data) <- c('A', 'B', 'C', 'D')
+
+initial_centers <- rbind(
+  colMeans(q3_data[rownames(q3_data) %in% c("A", "B"),]),
+  colMeans(q3_data[rownames(q3_data) %in% c("C", "D"),])
+)
+
+result <- kmeans(q3_data, centers = initial_centers)
+
+result
+```
+
+
+## (b)
+```{r}
+initial_centers_2 <- rbind(
+  colMeans(q3_data[rownames(q3_data) %in% c("A", "D"),]),
+  colMeans(q3_data[rownames(q3_data) %in% c("B", "C"),])
+)
+
+result_2 <- kmeans(q3_data, centers = initial_centers_2)
+
+result_2
+```
+
+```{r, fig.width=4.5, fig.height=5}
+plot(q3_data$X_1, q3_data$X_2, xlim=c(-2,6), ylim=c(-2,6), pch=19, xlab="X_1", ylab="X_2")
+
+text(q3_data$X_1, q3_data$X_2, labels=rownames(q3_data), pos=3)
+```
+
+wThe result are the same with the cluster [A, B] and [C, D]. On the (b)'s setting, the center (2.5, 2) will be changed by updating the cluster with [A, B] and losing D. Thus the result shall be same.
+
+# Q4
+## (a)
+```{r, fig.width=7, fig.height=7}
+cereal <- read.table("cereal_r.dat", header = T)
+names <- cereal[, 1]
+cereal <- cereal[, -c(1:2)]
+rownames(cereal) <- names
+
+D <- dist(cereal, method = "euclidean")
+
+# Single Linkage
+plot(hclust(D, method="single"), xlab="Cereals",
+     ylab="Distance", main="Single linkage dendrogram")
+```
+```{r, fig.width=7, fig.height=7}
+# complete Linkage
+plot(hclust(D, method="complete"), xlab="Cereals",
+     ylab="Distance", main="Complete linkage dendrogram")
+```
+```{r, fig.width=7, fig.height=7}
+# complete Linkage
+plot(hclust(D, method="average"), xlab="Cereals",
+     ylab="Distance", main="Group Avg linkage dendrogram")
+```
+
+
+## (b)
+```{r}
+set.seed(17)
+kmeans(cereal, 2)
+```
+```{r}
+set.seed(17)
+kmeans(cereal, 3)
+```
+
+```{r}
+set.seed(17)
+kmeans(cereal, 4)
+```
+## (c)
+The key observation I'd like to look at is [RaisinBran, TotalRasinBran, AllBran] cluster, which is all clustered discriminatively in all results. Since the Kmeans cluster of K=4 explains the sum of squares by clustering the best with proportion 81.2%,
+I'll set cluster of number 4 as a standard.
+
+In single linkage hierarchical clustering, the key cluster elements (Bran series) are not in the same cluster until
+the number of cluster is at 2. Thus I'll not recommend the single linkage.
+
+Group Average linkage construct the key cluster when the number of cluster is at 3.
+Thus, I'll pick the result of complete linkage which constructs the key cluster at 4.
+
+Thus, I'll recommend the Kmeans result with k=4 and the hierarchical clustering
+using the complete linkage.

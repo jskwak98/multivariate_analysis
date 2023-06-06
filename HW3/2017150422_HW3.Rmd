@@ -1,0 +1,171 @@
+---
+title: "STAT 401 Assignment 3"
+author: "2017150422 곽진성"
+date: "2023-04-27"
+mainfont: NanumGothic
+output:
+  pdf_document:
+    latex_engine: xelatex
+---
+
+```{r, results='hide', warning=FALSE}
+```
+
+# Q1
+## (a)
+
+From the covariance matrix,
+```{=tex}
+\begin{align*}
+(2-\lambda)(5-\lambda) -4 &= 0\\
+\lambda^2 - 7\lambda + 6 &= 0\\
+(\lambda-6)(\lambda-1)&=0\\
+\\
+\\
+(i)\space\lambda_1=6\\
+2x_1-2x_2&=6x_1\\
+x_1 &= -x_2/2\\
+a_1' &= (1/\sqrt5, -2/\sqrt5)\\
+\\
+\\
+(ii)\space\lambda_2=1\\
+2x_1-2x_2&=x_1\\
+x_1 &= 2x_2\\
+a_2' &= (2/\sqrt5, 1/\sqrt5)\\
+\end{align*}
+```
+From the result above, $Y_1 = a_1, Y_2 = a_2$.
+
+## (b)
+Total population is $tr(\Sigma)$ which is 7 and the proportion of the total population variance explained by the first principal component is $6/7 = 0.8571429$.
+Which is about 85.7 percent.
+
+## (c)
+```{=tex}
+\begin{align*}
+\rho_{X_1,Y_2} &= \frac {\sqrt{\lambda_2}a_{21}}{\sigma^{1/2}_{11}}\\
+&=\frac {\sqrt{1}*2/\sqrt5}{\sqrt{2}}\\
+&= \frac {2}{\sqrt{10}}\\
+&\approx 0.6325
+\end{align*}
+```
+Correlation is about 0.6325.
+
+## (d)
+```{=tex}
+\begin{align*}
+y_{i2} &= a_2'(x_i-\mu)\\
+&=2/\sqrt5*(1 - (-1)) + 1/\sqrt5 * (-1 - 3)\\
+&=4/\sqrt5 -4/\sqrt5\\
+&= 0
+\end{align*}
+```
+Thus, the principal component score for the second principal component is 0.
+
+## (e)
+```{r, fig.width=4.5, fig.height=5}
+mu = matrix(c(-1, 3), nrow = 2, ncol = 1)
+cov_sig = matrix(c(2, -2, -2, 5), nrow = 2, ncol = 2)
+
+values = eigen(cov_sig)$values
+ev = eigen(cov_sig)$vectors
+
+sd_pc <- sqrt(values)
+
+pc1_axis <- ev[,1] * sd_pc[1]
+pc2_axis <- ev[,2] * sd_pc[2]
+
+
+# Calculate intercepts.
+a  = mu[2] - ev[2,1]/ev[1,1]* mu[1]
+b  = mu[2] - ev[2,2]/ev[1,2]* mu[1]
+
+
+plot(1,type="n", xlim=c(-5,5),ylim=c(-5,5), xlab="x1", ylab="x2")
+#Draw lines with intercepts a and b and slopes PC1 and PC2, respectively;
+abline(a,ev[2,1]/ev[1,1])
+abline(b,ev[2,2]/ev[1,2],lty=2)  
+points(mu[1], mu[2], col='red', pch=16)
+text(1, 0, 'PC1')
+text(-3, 1.4, 'PC2')
+text(mu[1]+0.5, mu[2]+1, 'mu(-1,3)')
+```
+
+As shown in the graph above, principal components become new axes that are perpendicular to each other while maximizing the variance that the axis can account for from the data. New axes will have mean point of the original data as the origin. It can be observed that the axes are 'rotated' into PC1 and PC2.
+
+# Q2
+## (a)
+```{r}
+company = read.table("company.DAT",header=T)
+s = cov(company)
+
+evec_s = eigen(s)$vectors
+eval_s = eigen(s)$values
+eval_s
+evec_s
+```
+From the result above, the first principal component is (-0.9992, -0.0407) with
+variance 7489 and the second principal component is (0.0407, -0.9992) with
+variance 14.
+
+## (b)
+```{r}
+r = cor(company)
+evec_r = eigen(r)$vectors
+eval_r = eigen(r)$values
+eval_r
+evec_r
+```
+From the result above, the first principal component is (0.7071, 0.7071) with
+variance 1.6861 and the second principal component is (-0.7071, 0.7071) with
+variance 0.3139.
+
+## (c)
+```{r}
+summary(company)
+```
+Since variance is dependent to the original scale, covariance matrix
+and the corresponding PCA result is also dependent to the distortion caused
+by the difference in the scale. As shown in the summary above, Sales has
+much larger values than the Profit.
+In order to deal with the scale issue, it's better to use the PCA result based
+on the correlation matrix. Thus I would recommend the result from (b).
+
+# Q3
+## (a)
+```{r}
+radio = read.table("radiotherapy.dat",header=T)
+radio = radio[, 1:5]
+summary(radio)
+```
+Variable $X_1, X_4$ are scaled within the different range, thus I would use sample correlation matrix R to alleviate problems that could be caused by scale difference.
+
+## (b)
+```{r}
+R = cor(radio)
+PCs = eigen(R)$vectors
+PCvar = eigen(R)$values
+PCs
+PCvar
+```
+Each column vector is principal component of the sample data based on R. For example (0.44, 0.43, 0.35, 0.46, 0.52) will be the first principal component with variance 2.8585.
+
+## (c)
+```{r, fig.width=4.5, fig.height=5}
+x = c(1,2,3,4,5)
+prop = cumsum(PCvar)/5
+plot(x , PCvar, type='b', xlab="PC", ylab="Variance")
+par(new = TRUE)                             # Add new plot
+plot(x, prop, type = 'b', pch = 17, col = 3, ylim=c(0, 1), axes = FALSE, xlab = "", ylab = "")
+axis(side = 4)#, at = pretty(range(prop)))
+mtext("Cumulative Proportion", side = 4)
+```
+
+From the scree plot, I'll pick the first two principal components. The green line is showing the cumulative proportion of variance explained by the principal components selected so far. PC2 is the scree point and the cumulative proportion reaches around 0.8, thus I'll select the first two components.
+
+## (d)
+The first principal component accounts for the overall variables $X_1 ~ X_5$ with the similar magnitude of importance. The second principal component mainly accounts for the contrast between the amount of activity and the amount of sleep with the coefficients -0.57 and 0.78.
+
+## (e)
+I think that the radiotherapy data can be summarized into two dimensions by PC1 and PC2, which accounts for about 80% of total variance. The first component explains the data using all the variables while the second component captures the critical contrast between variables $X_2, X_3$.
+Thus I think that the radiotherapy data can be summarized in fewer than five dimensions.

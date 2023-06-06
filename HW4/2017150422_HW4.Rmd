@@ -1,0 +1,231 @@
+---
+title: "STAT 401 Assignment 4"
+author: "2017150422 곽진성"
+date: "2023-05-18"
+output:
+  pdf_document:
+    latex_engine: xelatex
+  word_document: default
+mainfont: NanumGothic
+---
+
+```{r, results='hide', warning=FALSE}
+```
+
+# Q1-1
+## (a)
+
+```{r}
+library(psych)
+
+cor = matrix(c(1.00, -0.04, 0.61, 0.45, 0.03, -0.29, -0.30, 0.45, 0.30,
+              -0.04, 1.00, -0.07, -0.12, 0.49, 0.43, 0.30, -0.31, -0.17,
+              0.61, -0.07, 1.00, 0.59, 0.03, -0.13, -0.24, 0.59, 0.32,
+              0.45, -0.12, 0.59, 1.00, -0.08, -0.21, -0.19, 0.63, 0.37,
+              0.03, 0.49, 0.03, -0.08, 1.00, 0.47, 0.41, -0.14, -0.24,
+              -0.29, 0.43, -0.13, -0.21, 0.47, 1.00, 0.63, -0.13, -0.15,
+              -0.30, 0.30, -0.24, -0.19, 0.41, 0.63, 1.00, -0.26, -0.29,
+              0.45, -0.31, 0.59, 0.63, -0.14, -0.13, -0.26, 1.00, 0.40,
+              0.30, -0.17, 0.32, 0.37, -0.24, -0.15, -0.29, 0.40, 1.00),
+             nrow = 9, ncol = 9,
+             dimnames = list(c("x1", "x2", "x3", "x4", "x5", "x6", "x7", "x8", "x9"),
+                             c("x1", "x2", "x3", "x4", "x5", "x6", "x7", "x8", "x9")))
+
+
+# Conduct principal component analysis for choosing the number of factors in the principal factor method.
+pain.pca=princomp(covmat=cor,cor=T)
+summary(pain.pca)
+pain.pca$sdev^2
+```
+```{r, fig.width=4.5, fig.height=5}
+screeplot(pain.pca, npcs=9,type="l")
+```
+
+Since 70% of total variance is cumulatively explained by three factors, and checking the scree plot, 3 factor model would be appropriate.
+
+## (b)
+The communalities are estimated as follows
+```{r}
+# Conduct factor analysis using the principal factor method without rotations.
+fac.pain1 = fa(cor, nfactors=3, n.obs=123, fm="pa", rotate="none")
+fac.pain1$communality
+```
+
+## (c)
+```{r}
+psi.pain1 <- diag(round((diag(cor) - fac.pain1$communality), 4))
+psi.pain1
+```
+
+## (d)
+```{r}
+fac.pain1$loadings
+```
+The correlation between 7th statement and the first factor is -0.576.
+
+## (e)
+```{r}
+lambda <- fac.pain1$loadings[,c(1,2,3)]
+round((cor - lambda%*%t(lambda) - psi.pain1), 2)
+```
+As it can be shown above, it's closer to zero matrix.
+
+# Q1-2
+Repetition of (b)~(e) with Varimax rotation is as follows
+
+## (b)
+The communalities are estimated as follows
+```{r}
+# Conduct factor analysis using the principal factor method without rotations.
+fac.pain2 = fa(cor, nfactors=3, n.obs=123, fm="pa", rotate="varimax")
+fac.pain2$communality
+```
+Communalites remain the same.
+
+## (c)
+```{r}
+psi.pain2 <- diag(round((diag(cor) - fac.pain2$communality), 4))
+psi.pain2
+```
+Since the communality remain the same, estimate of $Psi$ remains the same also.
+
+## (d)
+```{r}
+fac.pain2$loadings
+```
+The correlation between 7th statement and the first factor is -0.218.
+It can be inferred that by using varimax rotation, there were loadings that are maximized
+in its size while minimizing other near-zero loadings.
+
+## (e)
+```{r}
+lambda <- fac.pain2$loadings[,c(1,2,3)]
+round((cor - lambda%*%t(lambda) - psi.pain2), 2)
+```
+As it can be shown above, it's closer to zero matrix.
+
+# Q2
+## (a)
+```{r, fig.width=5, fig.height=5}
+data = matrix(c(0.789, -0.403,
+            0.834, -0.234,
+            0.740, -0.134,
+            0.586, -0.185,
+            0.676, -0.248,
+            0.654, 0.440,
+            0.641, 0.534,
+            0.629, 0.651,
+            0.564, 0.354,
+            0.808, 0.714), ncol = 2, byrow = TRUE,
+            dimnames = list(c("x1", "x2", "x3", "x4", "x5", "x6", "x7", "x8", "x9", "x10"),
+                            c("F1", "F2")))
+plot(c(-1, 1), c(-1, 1), type = "n", xlab = 'F1', ylab = 'F2')
+points(data[,1], data[,2])
+abline(v = 0)
+abline(h = 0)
+
+abline(a = 0, b = -0.403/0.789, col="blue")
+abline(a = 0, b = 0.789/0.403, col="blue")
+```
+```{r}
+degree = atan(-0.403/0.789) * 180/ pi
+degree
+```
+The minimum rotation could be achieved by rotating axis so that the F1 axis penetrate through x1, which is 0.789, -0.403. Thus the minimum angle of rotation can be calculated as above, -27 degree.
+
+## (b)
+```{r}
+rad = degree * pi / 180
+rotation_mat = matrix(c(cos(rad), sin(rad), -sin(rad), cos(rad)), nrow=2)
+rotation_mat
+```
+Rotation matrix from the result obtained from (a) could be built as above.
+By applying the transformation on the loadings,
+```{r}
+rotated_data = data %*% rotation_mat
+round(rotated_data, 3)
+```
+From the rotated result, $x_1, x_2, x_3, x_4, x_5$ can be grouped together and $x_6, x_7, x_8, x_9, x_{10}$ can be grouped together.
+
+# Q3
+## (a)
+```{r}
+pollution = read.table("./pollution.dat",
+                   col.names = c("Wind", "Solar","CO","NO",
+                                 "NO2","O3","HC"),
+                   header = TRUE)
+
+summary(pollution)
+```
+For the scale issue, the Solar Radiation variable could be recoded by scaling the values. Also, for the wind it could be considered to make some intervals with low, medium, and high wind with threshold like 6 and 8, meaning if the value is lower or equal to 6 the wind is low and recoded into 1.
+
+## (b)
+```{r}
+fac_pol_2 = fa(pollution, nfactors=2, fm="ml", rotate="varimax")
+fac_pol_2$loadings
+psi_pol_2 <- round((diag(cor(pollution)) - fac_pol_2$communality), 4)
+lambda <- fac_pol_2$loadings[,c(1,2)]
+ans <- lambda%*%t(lambda) + diag(psi_pol_2)
+```
+Factor 1 has higher loadings on CO, NO, NO2 and HC and Factor 2 has higher loadings on Wind, Solar and O3. Since Ozone, O3 is created actively from pollutants reacting with the Solar Radiation, factor 2 can be interpreted as Ozone pollution and the first factor can be interpreted as air pollution from other pollutants.
+
+Communalities, Specfic variances, and $\hat\Lambda\hat\Lambda^T + \hat\Psi$ are as follows.
+```{r}
+fac_pol_2$communality
+psi_pol_2
+ans
+```
+
+## (c)
+```{r}
+fac_pol_3 = fa(pollution, nfactors=3, fm="ml", rotate="varimax")
+fac_pol_3$loadings
+psi_pol_3 <- round((diag(cor(pollution)) - fac_pol_3$communality), 4)
+lambda <- fac_pol_3$loadings[,c(1,2,3)]
+ans <- lambda%*%t(lambda) + diag(psi_pol_3)
+```
+Factor 1 has higher loadings on NO2 and HC, Factor 2 has higher loadings on Solar and O3 and Factor 3 has higher loadings on Wind, CO, and NO. Factor 1 can be interpreted as source causing pollution by Hydrocarbons and nitrogen dioxide, Factor 2 is about the Ozone pollution, and factor 3 is mainly about other pollutatns, mainly carbon oxide and nitrogen oxide.
+
+Communalities, Specfic variances, and $\hat\Lambda\hat\Lambda^T + \hat\Psi$ are as follows.
+```{r}
+fac_pol_3$communality
+psi_pol_3
+ans
+```
+
+## (d)
+```{r}
+fac_pol_2$PVAL
+fac_pol_3$PVAL
+```
+For the 2 factor model, the U statistic is significant under alpha=0.05 and for the 3 factor model, the U statistic is also significant under alpha 0.05. Thus I'd recommend to use 3 factor model.
+
+## (e)
+Factor scores of 3 factor model is,
+```{r}
+fac_pol_3$scores
+```
+
+## (f)
+```{r}
+round(colMeans(fac_pol_3$scores), 4)
+round(diag(var(fac_pol_3$scores)), 4)
+```
+Theoretically, factor scores have 0 mean with 1 variance. And the result follows the theoretical values.
+
+## (g)
+```{r}
+factor_1_score <- rowSums(pollution[, c(3, 4, 5, 7)])
+factor_2_score <- rowSums(pollution[, c(1, 2, 6)])
+
+matrix(c(factor_1_score, factor_2_score), ncol=2)
+```
+If it's just simply summed without scaling, the score of F2 will be heavily dependent to solar radiation. The scores calculated in (e) consider the scaling issue, thus no such problem happens.
+
+The scaled version could be calculated as follows,
+```{r}
+factor_1_score <- rowSums(scale(pollution[, c(3, 4, 5, 7)]))
+factor_2_score <- rowSums(scale(pollution[, c(1, 2, 6)]))
+
+matrix(c(factor_1_score, factor_2_score), ncol=2)
+```
